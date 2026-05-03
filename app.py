@@ -154,16 +154,32 @@ with tab2:
     bulk_input = st.text_area(
         "Enter multiple texts (one per line):",
         placeholder="I love this!\nThis is terrible\nThe weather is okay",
-        height=200
+        height=200,
+        key="bulk_input"
     )
 
+    # Live counter
+    texts_entered = [t for t in bulk_input.split('\n') if t.strip()]
+    count = len(texts_entered)
+
+    if count == 0:
+        st.caption("Texts entered: 0 / 100")
+    elif count <= 80:
+        st.markdown(f"✅ Texts entered: **{count} / 100**")
+    elif count <= 100:
+        st.markdown(f"⚠️ Texts entered: **{count} / 100** — approaching limit!")
+    else:
+        st.markdown(f"🔴 Texts entered: **{count} / 100** — limit exceeded!")
+
     if st.button("Analyze All", type="primary"):
-        if bulk_input.strip() == "":
+        texts = [t.strip() for t in bulk_input.split('\n') if t.strip()]
+
+        if len(texts) > 100:
+            st.warning("Maximum 100 texts allowed. Please reduce your input.")
+        elif len(texts) == 0:
             st.warning("Please enter some text!")
         else:
-            texts = [t.strip() for t in bulk_input.split('\n') if t.strip()]
             results = []
-
             for text in texts:
                 prediction, probabilities = predict_sentiment(text)
                 results.append({
@@ -178,7 +194,6 @@ with tab2:
             results_df = pd.DataFrame(results)
             st.dataframe(results_df, use_container_width=True)
 
-            # Summary chart
             st.markdown("### Summary")
             sentiment_counts = pd.DataFrame(results)['Sentiment'].value_counts()
             fig = px.pie(
@@ -188,7 +203,6 @@ with tab2:
                 title="Sentiment Distribution"
             )
             st.plotly_chart(fig, use_container_width=True)
-
 # ─── Tab 3: About ───
 with tab3:
     st.subheader("About this Project")
