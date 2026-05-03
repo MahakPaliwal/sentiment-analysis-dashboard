@@ -25,8 +25,37 @@ def load_model():
 model, tfidf = load_model()
 
 # Clean text function
+
+import re
+import string
+
+def handle_negation(text):
+    negations = {
+        "not good": "bad",
+        "not happy": "sad",
+        "not great": "terrible",
+        "not having a good": "having a bad",
+        "not like": "dislike",
+        "not love": "hate",
+        "not enjoy": "dislike",
+        "not well": "unwell",
+        "not nice": "unpleasant",
+        "not fine": "bad",
+        "isn't good": "bad",
+        "wasn't good": "bad",
+        "can't stand": "hate",
+        "don't like": "dislike",
+        "doesn't work": "broken",
+        "didn't enjoy": "disliked"
+    }
+    text = text.lower()
+    for phrase, replacement in negations.items():
+        text = text.replace(phrase, replacement)
+    return text
+
 def clean_text(text):
     text = str(text)
+    text = handle_negation(text)      # ← negation handled first
     text = re.sub(r'http\S+|www\S+', '', text)
     text = re.sub(r'@\w+', '', text)
     text = re.sub(r'#\w+', '', text)
@@ -34,6 +63,10 @@ def clean_text(text):
     text = text.translate(str.maketrans('', '', string.punctuation))
     text = text.strip().lower()
     return text
+
+# Test it
+print(clean_text("I am not having a good day."))
+# Should print: "i am having a bad day"
 
 # Predict sentiment
 def predict_sentiment(text):
